@@ -7,7 +7,6 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TableOfContents } from "@/components/TableOfContents";
 import { ThemeProvider } from "@/components/theme-provider";
-import { TutorialProgressBar } from "@/components/TutorialProgressBar";
 import { contents, site } from "@/content/tutorialData";
 import "./globals.css";
 
@@ -80,6 +79,15 @@ export const metadata: Metadata = {
     description: site.description,
     images: ["/screenshots/08-keploy-flow.webp"],
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/keploy-logo.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/keploy-logo.png" },
+    ],
+  },
   robots: {
     index: true,
     follow: true,
@@ -122,7 +130,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <main id="main" className="container-page py-12 lg:py-16">
             <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-12">
               <div className="min-w-0">
-                <TutorialProgressBar />
                 <TableOfContents items={contents} variant="inline" />
                 {children}
               </div>
