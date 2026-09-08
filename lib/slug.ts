@@ -1,11 +1,7 @@
 import { isValidElement, type ReactNode } from "react";
 
 /**
- * Heading text -> URL-safe fragment.
- *
- * Used by three places that must agree exactly: the markdown heading renderer
- * in `mdx-components.tsx`, the `Step` component, and the table of contents in
- * `content/tutorialData.ts`. Keep this pure and dependency-free.
+ * Converts heading text into a URL-safe anchor slug.
  */
 export function slugify(input: string): string {
   return input
@@ -19,7 +15,7 @@ export function slugify(input: string): string {
     .replace(/-+/g, "-");
 }
 
-/** `Step` renders `<h2 id={stepId(1, "Get the Go application")}>`. */
+/** Formats a step number and title into a slugified anchor id. */
 export function stepId(number: number, title: string): string {
   return slugify(`${number}. ${title}`);
 }

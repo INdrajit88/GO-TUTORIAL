@@ -7,18 +7,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ------------------------------------------------------------------ *
- * Tokens
- *
- * The first block uses shadcn/ui's canonical names so components under
- * `components/ui/` work unmodified. The "domain" tokens below them are
- * this project's own: brand color, the third text tier, and code chrome.
- *
- * `--brand` is deliberately NOT called `--accent`. shadcn reserves
- * `accent` for the subtle hover surface, and colliding with it silently
- * breaks every shadcn component.
- *
- * Contrast (WCAG AA, 4.5:1 minimum for body text) was measured for every
- * foreground/background pair below — see the notes on --faint.
+ * Theme Tokens
  * ------------------------------------------------------------------ */
 
 :root {
@@ -26,8 +15,6 @@
 
   --radius: 0.625rem;
 
-  /* Surfaces are Keploy's own docs values: page #f9fafb, white content cards,
-     and navy body text rather than black. */
   --background: #f9fafb;
   --foreground: #00163d;
 
@@ -37,10 +24,6 @@
   --popover: #ffffff;
   --popover-foreground: #00163d;
 
-  /* Keploy's own primary ramp (#e67643 / #c95919 / #be2c1b) is used for
-     destructive and hover, but NOT for --primary or --brand-fg: #c95919 on
-     white measures 4.26:1 and #e67643 measures 2.98:1, both under AA.
-     #c2410c is the darkest orange in their set that clears it (5.18:1). */
   --primary: #c2410c;
   --primary-foreground: #ffffff;
 
@@ -60,29 +43,21 @@
   --input: #d1d5db;
   --ring: #ea580c;
 
-  /* Keploy brand orange #ff914d, triple-confirmed across their logo wordmark,
-     docs --ifm-color-primary, and marketing --theme-primary. Used for fills,
-     rules and decoration. Text uses --brand-fg instead, because #ff914d on
-     white is 2.1:1. */
+  /* Keploy brand palette */
   --brand: #ff914d;
   --brand-hover: #e67643;
   --brand-soft: #fff7ed;
   --brand-fg: #c2410c;
 
-  /* Inline code: Keploy's docs pair #fff7ed with #c2410c (4.88:1). */
+  /* Inline code */
   --code-inline-bg: #fff7ed;
   --code-inline-fg: #c2410c;
   --code-inline-border: #fed7aa;
 
-  /* 4.63:1 on --background and 4.83:1 on --card. */
   --faint: #6b7280;
   --line-strong: #d1d5db;
 
-  /* Semantic callout colors consumed by the Alert variants in
-     components/ui/alert.tsx. Each has three parts: the icon/rule color, the
-     tinted surface, and the title text (tuned for >= 4.5:1 on that surface).
-     Warning is pushed toward yellow so it stays distinguishable from the
-     orange brand at a glance. */
+  /* Callout semantic colors */
   --info: #2563eb;
   --info-soft: #eff5ff;
   --info-fg: #1e40af;
@@ -99,11 +74,6 @@
   --success-soft: #e9f9f1;
   --success-fg: #035a41;
 
-  /* Navbar wordmark lockup. These do NOT get dark-mode variants, because the
-     wordmark sits on a navy chip in both themes — that chip is the reason the
-     brand colors are usable at all. On navy #00163d they measure 12.83:1
-     (yellow) and 6.74:1 (cyan). Placed directly on the light header they are
-     1.33:1 and 2.52:1, i.e. the yellow would be effectively invisible. */
   --nav-chip: #00163d;
   --nav-keploy: #fad961;
   --nav-go: #00add8;
@@ -114,9 +84,6 @@
 .dark {
   color-scheme: dark;
 
-  /* Keploy's docs dark surfaces: #141414 page, #18181b content, #f5f6f7 text.
-     (Their marketing site uses a navy #0e1015; the docs values suit a
-     documentation page better and every pairing below was measured.) */
   --background: #141414;
   --foreground: #f5f6f7;
 
@@ -145,16 +112,11 @@
   --input: #333338;
   --ring: #ff914d;
 
-  /* Keploy's brand orange reads at 8.25:1 here, so unlike light mode it can be
-     used for text as well as fills. Their docs force links white in dark mode;
-     that is an aesthetic hotfix, not a contrast requirement, so the brand color
-     is kept to preserve the identity. */
   --brand: #ff914d;
   --brand-hover: #ffab77;
   --brand-soft: rgba(255, 145, 77, 0.13);
   --brand-fg: #ff914d;
 
-  /* Keploy's docs dark inline code: rgba(251,146,60,.2) with #fb923c (5.46:1). */
   --code-inline-bg: rgba(251, 146, 60, 0.2);
   --code-inline-fg: #fb923c;
   --code-inline-border: rgba(251, 146, 60, 0.32);
@@ -162,8 +124,6 @@
   --faint: #8b8b93;
   --line-strong: #3f3f46;
 
-  /* Translucent surfaces so the tint reads correctly over both --background
-     and --card without needing a second set of opaque values. */
   --info: #7aabff;
   --info-soft: rgba(122, 171, 255, 0.12);
   --info-fg: #a9c8ff;

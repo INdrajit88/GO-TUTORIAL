@@ -3,11 +3,7 @@ import { Heading } from "@/components/Heading";
 import { stepId } from "@/lib/slug";
 
 /**
- * A numbered tutorial section. The `id` lives on the `<h2>` so the table of
- * contents can link to it and `scroll-margin-top` can clear the sticky header.
- *
- * Content is wrapped in `.prose` — when using this from MDX, leave a blank line
- * after the opening tag so the body is parsed as markdown rather than JSX text.
+ * Numbered section container with heading and styled content wrapper.
  */
 export function Step({
   number,

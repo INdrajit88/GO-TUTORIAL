@@ -5,17 +5,7 @@ import { ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * A figure: image, border, and caption.
- *
- * Deliberately uses a plain `<img>` rather than `next/image`: the files are
- * added by hand after the fact, and `next/image` would fail the build or render
- * a broken frame for a path that isn't on disk yet. The existence check runs at
- * render time, so a missing figure degrades to a labelled placeholder and the
- * page still builds and reads correctly.
- *
- * `width`/`height` are the intrinsic pixel sizes and are not optional in
- * practice — they let the browser reserve the right aspect ratio before the
- * bytes arrive. Without them each image shifts the page as it loads.
+ * Image figure component with caption and missing asset fallback.
  */
 export function Screenshot({
   src,
@@ -30,13 +20,8 @@ export function Screenshot({
   caption?: string;
   width?: number;
   height?: number;
-  /** For tall figures, e.g. `mx-auto max-w-sm`, so they don't own the column. */
   className?: string;
 }) {
-  // Guarded, not just `existsSync(join(...))`: a typo'd key in
-  // `tutorialData.screenshots` makes `src` undefined, and `path.join` throws
-  // ERR_INVALID_ARG_TYPE — which 500s the whole page rather than degrading one
-  // figure. The entire point of this component is to fail soft.
   const usable = typeof src === "string" && src.length > 0;
   const available = usable && existsSync(join(process.cwd(), "public", src));
 
@@ -44,7 +29,7 @@ export function Screenshot({
     <figure className={cn("my-8", className)}>
       <div className="overflow-hidden rounded-xl border border-border bg-[#0e0e0e] shadow-xs">
         {available ? (
-          // eslint-disable-next-line @next/next/no-img-element -- see the note above; next/image can't tolerate absent files.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={src}
             alt={alt}
@@ -65,7 +50,7 @@ export function Screenshot({
           >
             <ImageIcon className="text-faint size-6" aria-hidden="true" strokeWidth={1.5} />
             <p className="text-muted-foreground m-0 text-[0.85rem] font-medium">
-              {usable ? "Figure not found on disk" : "Figure has no src — check tutorialData.screenshots"}
+              {usable ? "Image not found" : "Missing image source"}
             </p>
             <p className="text-faint m-0 font-mono text-[0.72rem] break-all">
               {usable ? src : String(src)}

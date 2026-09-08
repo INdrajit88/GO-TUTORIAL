@@ -37,13 +37,8 @@ function escapeHtml(value: string): string {
 }
 
 /**
- * The 1-based line numbers in a shell block that begin a new command, so a `$`
- * prompt can be drawn on exactly those lines and nowhere else.
- *
- * A line starts a command when it is not indented, not a `\` continuation of
- * the previous line, and not inside an open quote. Quote tracking matters for
- * the multi-line curl in step 4: its closing `}'` is unindented, and without
- * that check it would be mistaken for a new command.
+ * Identifies 1-based line numbers where new shell commands start,
+ * skipping indentation, line continuations, and multi-line quoted strings.
  */
 function commandLines(code: string): Set<number> {
   const prompts = new Set<number>();

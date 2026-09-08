@@ -36,11 +36,7 @@ function Check() {
 }
 
 /**
- * The record → replay loop as an ordered list of labelled nodes.
- *
- * Rendered as a real `<ol>` so the sequence is readable by a screen reader and
- * selectable as text; the arrows are decorative. This is a conceptual ordering
- * of what the tutorial does, not a diagram of Keploy internals.
+ * Visual sequence diagram illustrating the record and replay workflow.
  */
 export function WorkflowDiagram() {
   const lastIndex = workflow.length - 1;
