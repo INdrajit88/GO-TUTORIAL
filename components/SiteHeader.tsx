@@ -1,41 +1,10 @@
+import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { site } from "@/content/tutorialData";
-
-/**
- * Abstract record-and-replay mark: a chevron for the request going in, a filled
- * dot for the recording. Not a reproduction of Keploy's logo, but it borrows the
- * gradient from their logo mark (#FAD961 → #F76B1C, verified in
- * keploy-logo-dark.svg) so the header reads as Keploy without copying the asset.
- */
-function Mark() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="size-[1.15rem] shrink-0"
-      fill="none"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id="keploy-mark-gradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#FAD961" />
-          <stop offset="100%" stopColor="#F76B1C" />
-        </linearGradient>
-      </defs>
-      <path
-        d="m8.6 7.2-4 4.8 4 4.8"
-        stroke="url(#keploy-mark-gradient)"
-        strokeWidth={1.9}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="16.4" cy="12" r="3.2" fill="url(#keploy-mark-gradient)" />
-    </svg>
-  );
-}
 
 export function SiteHeader() {
   return (
@@ -48,11 +17,16 @@ export function SiteHeader() {
           href="#top"
           className="-ml-1 rounded-lg py-1 pl-1 pr-1 transition-opacity hover:opacity-85"
         >
-          {/* Navy chip in both themes: Keploy yellow is 1.33:1 on the light
-              header and would be unreadable, but 12.83:1 on navy. The chip is
-              what makes the real brand colors usable. */}
+          {/* Navy chip in both themes with official Keploy logo */}
           <span className="bg-nav-chip inline-flex items-center gap-2 rounded-lg py-1.5 pr-3 pl-2.5">
-            <Mark />
+            <Image
+              src="/keploy-logo.png"
+              alt="Keploy Logo"
+              width={22}
+              height={22}
+              priority
+              className="size-[1.25rem] shrink-0 object-contain"
+            />
             <span className="whitespace-nowrap text-[0.95rem] font-semibold tracking-[-0.015em]">
               <span className="text-nav-keploy">Keploy</span>{" "}
               <span className="font-normal text-white/40">×</span>{" "}
