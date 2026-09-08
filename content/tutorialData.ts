@@ -26,17 +26,17 @@ const nav: readonly NavLink[] = [
 
 export const site = {
   brand: "Keploy × Go",
-  title: "Echo SQL Sample Application",
+  title: "Zero-Code API Testing in Go with Keploy",
   description:
-    "Run an Echo-based URL shortener with PostgreSQL and use Keploy to capture and replay API testcases.",
+    "Capture real traffic and auto-generate test suites with PostgreSQL mocks for your Echo applications.",
   nav,
 } as const;
 
 export const hero = {
   label: "Hands-on Keploy Guide",
-  title: "Echo SQL Sample Application",
+  title: "Zero-Code API Testing in Go with Keploy",
   subtitle:
-    "Run an Echo-based URL shortener with PostgreSQL and use Keploy to capture and replay API testcases.",
+    "Capture real traffic and auto-generate test suites with PostgreSQL mocks for your Echo applications.",
   tags: ["Go", "Echo", "PostgreSQL", "Keploy", "Docker Compose", "Linux/WSL"],
 } as const;
 
