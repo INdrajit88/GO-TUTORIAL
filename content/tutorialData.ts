@@ -278,17 +278,27 @@ export const flagReference = [
  */
 export const screenshots = {
   postgresFix: {
-    src: "/screenshots/02-postgres-host-fix.png",
+    src: "/screenshots/02-postgres-host-fix.webp",
     width: 1988,
     height: 1078,
   },
+  dockerRecord: {
+    src: "/screenshots/03-docker-record.webp",
+    width: 1996,
+    height: 874,
+  },
   curl: {
-    src: "/screenshots/04-curl-requests.png",
-    width: 1466,
-    height: 398,
+    src: "/screenshots/04-curl-requests.webp",
+    width: 798,
+    height: 237,
+  },
+  dockerTestPass: {
+    src: "/screenshots/07-docker-test-pass.webp",
+    width: 1737,
+    height: 1190,
   },
   recordedTests: {
-    src: "/screenshots/06-recorded-tests.png",
+    src: "/screenshots/06-recorded-tests.webp",
     width: 1654,
     height: 542,
   },
