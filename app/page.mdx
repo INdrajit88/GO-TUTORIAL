@@ -68,12 +68,6 @@ This matters because the application is running inside Docker. In that environme
 
 <NetworkArchitecture />
 
-<Screenshot
-  src="/screenshots/02-postgres-host-fix.png"
-  alt="main.go open in an editor with the PostgreSQL host set to postgres"
-  caption="Line 48 in main.go — updating the PostgreSQL host from localhost to the Compose service name (postgres)."
-/>
-
 <Callout type="tip" title="Understanding Compose DNS">
 
 The correct PostgreSQL host depends on where your application is running. Inside Docker Compose, services communicate over a private bridge network using container service names. We’ll switch it back to `localhost` in the local Linux/WSL setup later.
@@ -214,6 +208,12 @@ This is the key difference between the two setups:
 | Application running locally | `localhost` |
 
 If the application cannot connect to PostgreSQL, this is one of the first things to check.
+
+<Screenshot
+  src="/screenshots/02-postgres-host-fix.png"
+  alt="main.go open in an editor with the PostgreSQL host set to localhost"
+  caption="Line 48 in main.go — setting the PostgreSQL host to localhost so the host-running binary can reach the mapped PostgreSQL container port."
+/>
 
 ### Build the Application
 
