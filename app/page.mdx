@@ -227,10 +227,16 @@ This setup requires adjusting the database host and running Keploy with appropri
 Start only the PostgreSQL service:
 
 ```bash
-docker-compose up postgres
+docker compose up -d postgres
 ```
 
-Now PostgreSQL is running inside Docker, while the Go application will run directly on your machine.
+Now PostgreSQL is running inside Docker, while the Go application will run directly on your host machine.
+
+<Callout type="tip" title="Run PostgreSQL in the background">
+
+Using the `-d` flag runs the PostgreSQL container detached in the background, keeping your active terminal free for compiling and running the Go application.
+
+</Callout>
 
 ### Change the PostgreSQL Host
 
@@ -255,6 +261,12 @@ If the application cannot connect to PostgreSQL, this is one of the first things
   caption="Line 48 in main.go — setting the PostgreSQL host to localhost so the host-running binary can reach the mapped PostgreSQL container port."
 />
 
+<Callout type="tip" title="Why localhost works for Local Linux/WSL">
+
+Because the PostgreSQL container publishes port `5432:5432` directly to the host machine, the Go binary running outside Docker communicates through the standard `localhost:5432` loopback address without requiring container network resolution.
+
+</Callout>
+
 ### Build the Application
 
 Create the application binary:
@@ -271,9 +283,15 @@ Run Keploy against the binary:
 sudo -E PATH=$PATH keploy record -c "./echo-psql-url-shortener"
 ```
 
-### Generate API Traffic
+<Callout type="tip" title="Why sudo -E PATH=$PATH is required on Linux/WSL">
 
-Create another URL:
+On Linux and WSL2, Keploy leverages eBPF (Extended Berkeley Packet Filter) to attach hooks to kernel network sockets and capture PostgreSQL wire traffic transparently. Loading eBPF programs requires root privileges (`sudo`), while `-E PATH=$PATH` ensures the user's Go binary and toolchain paths are preserved.
+
+</Callout>
+
+<Heading level={3} id="generate-api-traffic">Generate a Testcase</Heading>
+
+With the local application running under Keploy, send an API request to shorten a URL:
 
 ```bash
 curl --request POST \
@@ -284,7 +302,7 @@ curl --request POST \
 }'
 ```
 
-You should get a response similar to:
+You should get a response containing your short URL:
 
 ```json
 {
@@ -293,7 +311,9 @@ You should get a response similar to:
 }
 ```
 
-Now test the redirect:
+#### Test the Redirect Endpoint
+
+Now test the newly generated redirect endpoint:
 
 ```bash
 curl http://localhost:8082/Lhr4BWAi
@@ -307,9 +327,38 @@ These requests will be captured by Keploy along with the PostgreSQL interactions
   caption="Keploy capturing API calls and PostgreSQL wire-level exchanges from the local binary into test-set-1."
 />
 
-### Stop the Local Recording Session
+<Heading level={3} id="stop-the-local-recording-session">Stop Recording</Heading>
 
-Once you have tested the endpoints, return to the terminal running `sudo -E PATH=$PATH keploy record` and press `Ctrl + C`. Keploy will gracefully shut down the application process and save the recorded testcases and database mocks to the `keploy/` directory.
+Once you have tested the endpoints, stop the Keploy capture session:
+
+1. Return to the terminal where `keploy record` is running.
+2. Press `Ctrl + C` to stop capturing.
+
+Keploy gracefully intercepts the shutdown signal, terminates the running application binary, and saves the recorded testcases and database mocks to disk under `keploy/test-set-1/`.
+
+<Callout type="info" title="PostgreSQL container remains running">
+
+Unlike Docker Compose where the full stack terminates, PostgreSQL remains running in Docker in the background (`docker compose up postgres`), ready to serve mocked state during test replay.
+
+</Callout>
+
+---
+
+<Heading level={3} id="check-the-local-generated-testcases">Check the Generated Testcases</Heading>
+
+Keploy writes test sets incrementally so you can record different runs or environments without overwriting existing data. Your directory structure will now include `test-set-1`:
+
+```text
+keploy/
+├── test-set-0/     # Captured from Docker Compose workflow
+│   ├── tests/
+│   └── mocks/
+└── test-set-1/     # Captured from Local Linux/WSL workflow
+    ├── tests/
+    └── mocks/
+```
+
+The captured testcases contain the exact HTTP contract and PostgreSQL wire-level exchanges recorded while processing requests through the local binary.
 
 ---
 
@@ -322,6 +371,12 @@ sudo -E PATH=$PATH keploy test -c "./echo-psql-url-shortener"
 ```
 
 Keploy replays the recorded requests and uses the captured database interactions, so you don't need to manually recreate the PostgreSQL state for every test.
+
+<Screenshot
+  src="/screenshots/07-docker-test-pass.webp"
+  alt="Keploy replaying testcases with passing results"
+  caption="Keploy test execution verifying recorded testcases across test sets with 100% pass rate."
+/>
 
 ---
 

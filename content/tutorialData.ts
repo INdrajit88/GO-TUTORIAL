@@ -439,8 +439,9 @@ export const contents: ContentsEntry[] = [
   { id: "change-the-postgresql-host", label: "Change PostgreSQL Host", level: 3 },
   { id: "build-the-application", label: "Build Application", level: 3 },
   { id: "start-keploy-recording", label: "Start Keploy Recording", level: 3 },
-  { id: "generate-api-traffic", label: "Generate API Traffic", level: 3 },
-  { id: "stop-the-local-recording-session", label: "Stop Local Recording", level: 3 },
+  { id: "generate-api-traffic", label: "Generate Testcases", level: 3 },
+  { id: "stop-the-local-recording-session", label: "Stop Recording", level: 3 },
+  { id: "check-the-local-generated-testcases", label: "Check Generated Testcases", level: 3 },
   { id: "replay-the-local-testcases", label: "Replay Local Testcases", level: 3 },
   { id: "conclusion", label: "Conclusion", level: 2 },
 ];
