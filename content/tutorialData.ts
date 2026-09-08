@@ -1,4 +1,4 @@
-import { slugify, stepId } from "@/lib/slug";
+import { slugify } from "@/lib/slug";
 
 /**
  * Single source of truth for the tutorial's facts: commands, screenshots,
@@ -33,17 +33,18 @@ const nav: readonly NavLink[] = [
 
 export const site = {
   brand: "Keploy × Go",
-  title: "Test a Go API with Keploy",
+  title: "Echo SQL Sample Application",
   description:
-    "Learn how to record real API interactions and replay them as automated tests for a Go application using Keploy.",
+    "Run an Echo-based URL shortener with PostgreSQL and use Keploy to capture and replay API testcases.",
   nav,
 } as const;
 
 export const hero = {
-  label: "Go developer tutorial",
-  title: site.title,
-  subtitle: "Record real API interactions and replay them as automated tests.",
-  tags: ["Go", "Echo", "PostgreSQL", "Keploy", "Docker Compose"],
+  label: "Hands-on Keploy Guide",
+  title: "Echo SQL Sample Application",
+  subtitle:
+    "Run an Echo-based URL shortener with PostgreSQL and use Keploy to capture and replay API testcases.",
+  tags: ["Go", "Echo", "PostgreSQL", "Keploy", "Docker Compose", "Linux/WSL"],
 } as const;
 
 export const sample = {
@@ -398,32 +399,25 @@ Total test failed:  0`,
  * `stepId(number, title)`; markdown sections use `slugify(title)`.
  * ------------------------------------------------------------------ */
 
-export const frontMatterSections = ["What you'll build", "What you'll need"] as const;
-
-export const steps = [
-  { number: 1, title: "Get the Go application" },
-  { number: 2, title: "Point the app at Postgres" },
-  { number: 3, title: "Start Keploy in record mode" },
-  { number: 4, title: "Make a real API request" },
-  { number: 5, title: "Test the shortened URL" },
-  { number: 6, title: "Stop recording" },
-  { number: 7, title: "Replay the recorded tests" },
-  { number: 8, title: "Understand the workflow" },
-  { number: 9, title: "Why this is useful for Go developers" },
-  { number: 10, title: "What I learned" },
-  { number: 11, title: "Troubleshooting" },
-  { number: 12, title: "Final result" },
+export const tutorialSections = [
+  "Prerequisites",
+  "Get the Sample Application",
+  "Run Everything with Docker Compose",
+  "Start Recording with Keploy",
+  "Generate a Testcase",
+  "Check the Generated Testcases",
+  "Replay the Testcases",
+  "Run the Application Locally on Linux/WSL",
+  "What I Learned from This Setup",
+  "Conclusion",
 ] as const;
 
 export type ContentsEntry = { id: string; label: string };
 
-export const contents: ContentsEntry[] = [
-  ...frontMatterSections.map((title) => ({ id: slugify(title), label: title })),
-  ...steps.map((step) => ({
-    id: stepId(step.number, step.title),
-    label: `${step.number}. ${step.title}`,
-  })),
-];
+export const contents: ContentsEntry[] = tutorialSections.map((title) => ({
+  id: slugify(title),
+  label: title,
+}));
 
 export const tutorialData = {
   site,

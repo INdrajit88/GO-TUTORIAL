@@ -1,568 +1,338 @@
-import {
-  ahaMoments,
-  artifacts,
-  commands,
-  endpoints,
-  flagReference,
-  observations,
-  prerequisites,
-  responses,
-  result,
-  sample,
-  screenshots,
-  troubleshooting,
-} from "@/content/tutorialData";
 import { Callout } from "@/components/Callout";
-import { CommandBlock } from "@/components/CommandBlock";
-import { Heading } from "@/components/Heading";
-import { RichText } from "@/components/RichText";
 import { Screenshot } from "@/components/Screenshot";
-import { Step } from "@/components/Step";
-import { TerminalBlock } from "@/components/TerminalBlock";
+import { NetworkArchitecture } from "@/components/NetworkArchitecture";
+import { TestMockComparison } from "@/components/TestMockComparison";
 import { WorkflowDiagram } from "@/components/WorkflowDiagram";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, CircleCheckBig } from "lucide-react";
 
 <div className="prose">
 
-<div className="lead">
+In this tutorial, we’ll run an Echo-based URL shortener with PostgreSQL and use Keploy to capture and replay API testcases.
 
-I wrote zero lines of test code for this. Two `curl` requests went in, a passing test
-suite came out — PostgreSQL mocks included.
+I’ll also cover a small configuration issue that can easily come up when switching between Docker and a local Linux/WSL setup: the PostgreSQL host.
 
-</div>
+By the end, you’ll have:
 
-The app is Keploy's <code>{sample.directory}</code> sample: a URL shortener with an Echo
-HTTP layer and PostgreSQL behind it. The whole stack runs through Docker Compose. I'm
-going to start it, use it twice, stop it, and then watch Keploy replay both requests as
-tests.
+* An Echo + PostgreSQL application running locally.
+* API requests captured as Keploy testcases.
+* PostgreSQL interactions captured as mocks.
+* The captured testcases replayed without manually creating database mocks.
 
-Every command below is one I actually ran, and every response is what actually came back.
-Where I got something wrong, I've left that in too — it's the useful part.
+---
 
-<Callout type="info" title="Why Docker Compose and not the WSL path">
+## Prerequisites
 
-The sample ships a Linux/WSL workflow as well. I went with Compose for one reason: I want
-the database to exist when I say it exists. App, Postgres and Keploy in one containerized
-environment means the setup is reproducible, and nothing depends on what my machine
-happens to have installed this week.
+Before getting started, make sure you have:
+
+* **Go** installed.
+* **Docker** installed and running.
+* **Keploy** installed.
+* `curl` or another API client such as Postman.
+
+If Keploy is not installed yet, follow the [Keploy installation guide](https://keploy.io/docs/server/installation/).
+
+---
+
+## Get the Sample Application
+
+Clone the sample repository and install its dependencies:
+
+```bash
+git clone https://github.com/keploy/samples-go.git
+cd samples-go/echo-sql
+go mod download
+```
+
+The sample is a simple URL shortener built with Echo and backed by PostgreSQL.
+
+---
+
+## Run Everything with Docker Compose
+
+For the first setup, both the application and PostgreSQL will run through Docker Compose.
+
+### Update the PostgreSQL Host
+
+Before starting the application, open `main.go` and update the PostgreSQL host from:
+
+```text
+localhost
+```
+
+to:
+
+```text
+postgres
+```
+
+This matters because the application is running inside Docker. In that environment, `localhost` points to the application container itself.
+
+`postgres` is the hostname of the PostgreSQL service on the Docker Compose network.
+
+<NetworkArchitecture />
+
+<Screenshot
+  src="/screenshots/02-postgres-host-fix.png"
+  alt="main.go open in an editor with the PostgreSQL host set to postgres"
+  caption="Line 48 in main.go — updating the PostgreSQL host from localhost to the Compose service name (postgres)."
+/>
+
+<Callout type="tip" title="Understanding Compose DNS">
+
+The correct PostgreSQL host depends on where your application is running. Inside Docker Compose, services communicate over a private bridge network using container service names. We’ll switch it back to `localhost` in the local Linux/WSL setup later.
 
 </Callout>
 
-## What you'll build
+---
 
-Not an application — a test suite for one that already works. By the end you'll have:
+## Start Recording with Keploy
 
-- the `echo-sql` shortener running as a Compose stack on port <code>{sample.port}</code>
-- a `keploy/test-set-0/` directory with two recorded test cases and a `mocks.yaml` holding
-  the captured PostgreSQL calls
-- a `keploy test` run that replays both and reports **2 passed, 0 failed**
+Start the application through Keploy:
 
-Here's the whole loop up front, so nothing below feels like it's arriving out of nowhere:
+```bash
+keploy record -c "docker compose up" --container-name "echoApp" --build-delay 50
+```
+
+The `--build-delay` option gives Docker some extra time to build images and start the services before Keploy begins capturing traffic.
+
+You can skip it when your services are already running.
+
+---
+
+## Generate a Testcase
+
+With the application running, send a request to create a shortened URL:
+
+```bash
+curl --request POST \
+  --url http://localhost:8082/url \
+  --header 'content-type: application/json' \
+  --data '{
+  "url": "https://github.com"
+}'
+```
+
+You should get a response similar to:
+
+```json
+{
+  "ts": 1647802058801841100,
+  "url": "http://localhost:8082/GuwHCgoQ"
+}
+```
+
+The timestamp changes between requests, so Keploy handles such dynamic values during testing.
+
+### Test the Redirect Endpoint
+
+Use the generated short URL:
+
+```bash
+curl http://localhost:8082/GuwHCgoQ
+```
+
+You can also open the URL directly in your browser.
+
+At this point, Keploy has captured both API interactions.
+
+<Screenshot
+  src="/screenshots/04-curl-requests.png"
+  alt="Terminal showing curl requests and responses for URL shortener"
+  caption="Generating real API traffic with curl: creating a shortened URL and testing the redirect."
+/>
+
+---
+
+## Check the Generated Testcases
+
+The captured testcases are written to the Keploy directory.
+
+Along with the HTTP testcases, Keploy also records the PostgreSQL interactions generated while processing those requests.
+
+This means you don't have to manually create mocks for every database operation.
+
+Your generated data will look roughly like:
+
+```text
+keploy/
+├── tests/
+└── mocks/
+```
+
+The exact files may vary depending on the recorded requests.
+
+<Screenshot
+  src="/screenshots/06-recorded-tests.png"
+  alt="Terminal output showing Keploy recorded test-set on disk"
+  caption="Keploy records the exact HTTP contract and PostgreSQL wire-level exchanges without hand-written fixtures."
+/>
+
+<TestMockComparison />
+
+---
+
+## Replay the Testcases
+
+Once the recording is complete, run the captured testcases:
+
+```bash
+keploy test -c "docker compose up" --container-name "echoApp" --build-delay 50 --delay 10
+```
+
+Keploy replays the recorded API requests and uses the captured PostgreSQL interactions during the test.
+
+This gives you a repeatable test flow without manually setting up database mocks for each testcase.
+
+---
+
+## Run the Application Locally on Linux/WSL
+
+You can also run the Go application directly on Linux/WSL while keeping PostgreSQL inside Docker.
+
+This setup is slightly different, especially when it comes to the PostgreSQL host.
+
+### Start PostgreSQL
+
+Start only the PostgreSQL service:
+
+```bash
+docker-compose up postgres
+```
+
+Now PostgreSQL is running inside Docker, while the Go application will run directly on your machine.
+
+### Change the PostgreSQL Host
+
+Because the application is now running outside Docker, change the PostgreSQL host in `main.go` back to:
+
+```text
+localhost
+```
+
+This is the key difference between the two setups:
+
+| Application | PostgreSQL Host |
+| --- | --- |
+| Application inside Docker | `postgres` |
+| Application running locally | `localhost` |
+
+If the application cannot connect to PostgreSQL, this is one of the first things to check.
+
+### Build the Application
+
+Create the application binary:
+
+```bash
+go build -o echo-psql-url-shortener
+```
+
+### Start Keploy Recording
+
+Run Keploy against the binary:
+
+```bash
+sudo -E PATH=$PATH keploy record -c "./echo-psql-url-shortener"
+```
+
+### Generate API Traffic
+
+Create another URL:
+
+```bash
+curl --request POST \
+  --url http://localhost:8082/url \
+  --header 'content-type: application/json' \
+  --data '{
+  "url": "https://google.com"
+}'
+```
+
+You should get a response similar to:
+
+```json
+{
+  "ts": 1645540022,
+  "url": "http://localhost:8082/Lhr4BWAi"
+}
+```
+
+Now test the redirect:
+
+```bash
+curl http://localhost:8082/Lhr4BWAi
+```
+
+These requests will be captured by Keploy along with the PostgreSQL interactions generated by the application.
+
+---
+
+## Replay the Local Testcases
+
+Run the captured testcases against the local binary:
+
+```bash
+sudo -E PATH=$PATH keploy test -c "./echo-psql-url-shortener"
+```
+
+Keploy replays the recorded requests and uses the captured database interactions, so you don't need to manually recreate the PostgreSQL state for every test.
+
+---
+
+## What I Learned from This Setup
+
+The main thing to keep in mind is where your application is running.
+
+When the application runs inside Docker, PostgreSQL is reached using the Compose service name:
+
+```text
+postgres
+```
+
+When the application runs directly on Linux/WSL, PostgreSQL is reached through:
+
+```text
+localhost
+```
+
+Once that configuration is correct, the Keploy workflow is straightforward:
+
+```text
+Run the application
+       ↓
+Start Keploy recording
+       ↓
+Send API requests
+       ↓
+Capture API + database interactions
+       ↓
+Generate testcases and mocks
+       ↓
+Replay the testcases
+```
 
 <WorkflowDiagram />
 
-The detail worth sitting with: none of that suite was written. It fell out of two ordinary
-HTTP requests.
+<Screenshot
+  src="/screenshots/08-keploy-flow.webp"
+  alt="Keploy record and replay workflow diagram"
+  caption="The Keploy workflow loop: capture live application interactions and replay them as automated tests."
+/>
 
-## What you'll need
+The useful part is that Keploy can capture the database interactions as part of the request flow, so you don't have to hand-write mocks for PostgreSQL.
 
-<Card className="gap-0 py-0">
-  <CardHeader className="border-b px-5 py-4">
-    <CardTitle className="text-base">Before you start</CardTitle>
-    <CardDescription>Four things, and none of them are Go-specific.</CardDescription>
-  </CardHeader>
-  <CardContent className="px-5 py-4">
-    <ul role="list" className="no-bullets m-0 grid list-none gap-3.5 p-0 sm:grid-cols-2">
-      {prerequisites.map((item) => (
-        <li key={item.name} className="flex items-start gap-2.5">
-          <Check className="text-success mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          <span className="min-w-0">
-            <span className="text-foreground block text-[0.93rem] font-medium">
-              {item.name}
-            </span>
-            <span className="text-muted-foreground block text-[0.84rem] leading-relaxed">
-              {item.note}
-            </span>
-          </span>
-        </li>
-      ))}
-    </ul>
-  </CardContent>
-</Card>
+---
 
-You don't need to write any Go. You do need to be comfortable pasting things into a
-terminal and reading what comes back.
+## Conclusion
+
+With the Echo + PostgreSQL sample, we can capture real application behaviour and turn it into repeatable testcases using Keploy.
+
+The workflow is simple: configure the database connection for your environment, record a few API calls, and replay them with Keploy.
+
+That gives you a practical way to test an application with database dependencies without building and maintaining those mocks manually.
+
+<Screenshot
+  src="/screenshots/09-keploy-vs-manual.webp"
+  alt="Keploy record and replay vs manual test writing comparison"
+  caption="Manual test maintenance vs Keploy's zero-code record and replay approach."
+/>
 
 </div>
-
-<Step number={1} title="Get the Go application">
-
-Clone Keploy's Go samples and drop into the Echo + PostgreSQL one:
-
-<CommandBlock title="clone the sample">{commands.clone}</CommandBlock>
-
-The first two lines leave you in <code>{sample.directory}</code>. `go mod download` pulls the
-sample's dependencies into your local module cache — boring, but it means nothing stalls on
-network resolution later.
-
-### Why this sample and not a hello-world
-
-Because it has the two things that make Keploy interesting rather than merely impressive:
-an HTTP surface, and a real dependency hiding behind it.
-
-<TerminalBlock language="text" title="the sample">{artifacts.stack}</TerminalBlock>
-
-One route shortens a URL, the other redirects, and both touch PostgreSQL. If this were
-HTTP-only you'd shrug and move on. It's the database calls that you'd otherwise have to
-fake — and those get captured too.
-
-</Step>
-
-<Step number={2} title="Point the app at Postgres">
-
-This is the step I got wrong, so let's settle it before anything starts.
-
-Open `main.go` and find the host the app dials for PostgreSQL. In the Compose workflow it
-has to be the service name — `postgres` — and not `localhost`.
-
-<Screenshot
-  {...screenshots.postgresFix}
-  alt="main.go open in an editor with the PostgreSQL host set to the Compose service name"
-  caption="Line 48 in main.go — the one-word change that decides whether the app can find its database."
-/>
-
-Here's the why. On a Compose network every service is reachable by its service name, so the
-Go container resolves `postgres` straight to the database container. `localhost` inside that
-same container means *the container itself*, where nothing is listening on 5432. The word
-looks correct, reads correct, and is correct on your laptop — which is exactly why it's
-annoying.
-
-<Callout type="tip" title="Once you know the rule it stops being magic">
-
-Service discovery by name is a Compose network feature, not something the Go app
-implements. After a while `postgres`, `redis` and `db` in connection strings stop looking
-like incantations and start being the obvious way to address a sibling container.
-
-</Callout>
-
-</Step>
-
-<Step number={3} title="Start Keploy in record mode">
-
-Now start the stack *through* Keploy, rather than starting Compose yourself:
-
-<CommandBlock title="record mode">{commands.record}</CommandBlock>
-
-One command doing three separate jobs, and it's worth knowing which is which:
-
-- `-c "docker compose up"` is what Keploy runs for you, so the stack comes up exactly as it
-  would have otherwise.
-- `--container-name "echoApp"` says which container in that stack holds the app to observe.
-  Compose starts more than one; only one of them is the API.
-- `--build-delay 50` buys the stack time to build images and get PostgreSQL accepting
-  connections before Keploy starts watching. On a cold Docker cache, none of that is
-  instant.
-
-**What you should see:** the Compose stack come up and Keploy settle into recording. Nothing
-is being tested yet. Keploy has put itself in the application's execution flow, so it can
-watch requests arrive and database calls go back out:
-
-<TerminalBlock language="text" title="the compose stack">{artifacts.compose}</TerminalBlock>
-
-<Callout type="info" title="Record mode is a recorder, not a test runner">
-
-This tripped me up for a minute. Keploy isn't reading my Go code and generating tests from
-it, and it isn't guessing at my API. It's waiting for me to *use* the application and
-writing down what happens. Verification is a different command, and it comes later.
-
-</Callout>
-
-</Step>
-
-<Step number={4} title="Make a real API request">
-
-Shorten a URL. This is a completely ordinary request — the kind you'd send while poking at
-the API anyway:
-
-<CommandBlock title="create a short url">{commands.postUrl}</CommandBlock>
-
-**What comes back:**
-
-<TerminalBlock language="json" title="expected response">{responses.postUrl}</TerminalBlock>
-
-Both values are generated per request, so your timestamp and short ID won't match mine.
-Keep the ID — the next step needs it.
-
-<Screenshot
-  {...screenshots.curl}
-  alt="Terminal showing the curl request to the URL shortener and the JSON response"
-  caption="The whole interaction: one curl in, one shortened URL out."
-/>
-
-### What Keploy actually captured
-
-This is the part worth slowing down for.
-
-I sent `POST /url`. The Echo handler processed it and talked to PostgreSQL to store the
-mapping. Keploy watched the whole thing — request, response, and the database calls in
-between — and wrote down enough to reproduce it.
-
-Now compare that with what I'd normally do to test the same endpoint:
-
-- construct the request
-- set the headers
-- build the body
-- assert the expected response
-- and mock the database, because the test can't hit a real one
-
-I did none of that. I made one API call and Keploy took notes.
-
-<Callout type="success" title="The moment it clicked">
-
-The test gets created by using the application normally. There's no separate step where I
-transcribe what I did into a test file — the real interaction *is* the source material.
-
-</Callout>
-
-</Step>
-
-<Step number={5} title="Test the shortened URL">
-
-Now do what an actual user does next: follow the link. Swap in the ID your own `POST`
-returned.
-
-<CommandBlock title="follow the short url">{commands.getShortUrl}</CommandBlock>
-
-**What you should see:** a redirect to the original URL. The same thing works from a browser
-at <code>{endpoints.follow}</code>, which is a useful reminder — Keploy isn't recording
-`curl`. It's recording what the application saw.
-
-### Why that's a second test case and not a duplicate
-
-Because it's a second behavior. The first request wrote a row; this one reads it back and
-issues a redirect. Different route, different handler, different database call, different
-response shape. Keploy treats each recorded interaction as its own scenario, so the test
-set now describes two genuinely different things the API does:
-
-<TerminalBlock language="text" title="recorded scenarios">{artifacts.scenarios}</TerminalBlock>
-
-That's what makes this scale past a demo. The more of the application you actually use
-while recording, the more of it is covered when you replay. Coverage here is a function of
-how thoroughly you poke the API, not of how much test code you write.
-
-</Step>
-
-<Step number={6} title="Stop recording">
-
-Both requests are made, so end the recording with `Ctrl + C` in the terminal running
-Keploy. It finishes the capture and writes everything to disk.
-
-**What you should find:**
-
-<TerminalBlock language="text" title="what lands on disk">{artifacts.tree}</TerminalBlock>
-
-Filenames shift a little between runs — each test is named after the request that produced
-it.
-
-<Screenshot
-  {...screenshots.recordedTests}
-  alt="Terminal output showing the Keploy test cases written to disk after recording"
-  caption="What recording actually leaves behind: test cases plus the mocks they need."
-/>
-
-### Test cases versus mocks
-
-Two different things, and keeping them straight is most of the mental model:
-
-- **`tests/`** holds the recorded test cases. Each file is one interaction: what came in,
-  what went back out.
-- **`mocks.yaml`** holds the recorded dependency behavior — the PostgreSQL calls Keploy saw
-  the app make.
-
-<Callout type="info" title="Why the mocks matter more than they look">
-
-The test case says what the interaction looked like. The mocks supply the dependency
-behavior needed to reproduce it. That's why there's no fake PostgreSQL to write: the real
-one was observed, and its answers were kept.
-
-</Callout>
-
-Both files are YAML. You can open them, read them, and diff them in a PR — nothing here is
-an opaque binary blob, which matters the first time a test fails and you need to know why.
-
-</Step>
-
-<Step number={7} title="Replay the recorded tests">
-
-Now the recording earns its keep:
-
-<CommandBlock title="replay">{commands.test}</CommandBlock>
-
-Same stack, same container, same warm-up as the record command. The new flag is
-`--delay 10` — how long Keploy waits for the app to be ready before it starts firing
-recorded requests at it.
-
-### What happens during replay
-
-Keploy brings Compose up again and works through the test cases one at a time. For each one
-it replays the recorded request against your application, serves the recorded dependency
-responses back to it, and then compares what the app actually did with what it did during
-recording.
-
-<TerminalBlock language="text" title="replay">{artifacts.replay}</TerminalBlock>
-
-Two things I no longer have to do:
-
-- re-send the API requests by hand
-- recreate the PostgreSQL interactions the app expects to have
-
-<Callout type="info" title="Record once, replay forever">
-
-The recording is a reproducible description of an interaction. `keploy test` uses it to
-check whether the app still behaves the same way — which is precisely what a regression
-test is for, and precisely why these files belong in version control next to the code.
-
-</Callout>
-
-</Step>
-
-<Step number={8} title="Understand the workflow">
-
-Step back from the individual commands and it's one loop:
-
-<Screenshot
-  {...screenshots.flow}
-  className="mx-auto max-w-md"
-  alt="Diagram of the Keploy workflow, from Go application through recording and replay to test results"
-  caption="The whole idea on one page: record what the app really did, then replay it and compare."
-/>
-
-Reduced to four moves:
-
-1. Start the application.
-2. Use the API the way a real caller would.
-3. Keploy records what happened.
-4. Keploy replays it as a test.
-
-The shift worth noticing is the starting point. Most testing workflows begin with test code
-you write before or alongside the behavior it describes. This one begins with **observed
-behavior**, and the test is derived from it. Different direction of travel, and it changes
-what testing costs you.
-
-### The two commands side by side
-
-Both wrap the same Compose command. The only real difference is one flag — and knowing
-which flag does what is most of the operational knowledge here.
-
-<Tabs defaultValue="record" className="mt-5">
-  <TabsList>
-    {flagReference.map((entry) => (
-      <TabsTrigger key={entry.id} value={entry.id} className="font-mono text-xs">
-        {entry.label}
-      </TabsTrigger>
-    ))}
-  </TabsList>
-  {flagReference.map((entry) => (
-    <TabsContent
-      key={entry.id}
-      value={entry.id}
-      forceMount
-      className="data-[state=inactive]:hidden"
-    >
-      <p className="text-muted-foreground m-0 mt-3 text-[0.92rem]">{entry.purpose}</p>
-      <CommandBlock title={entry.label}>{entry.command}</CommandBlock>
-      <ul role="list" className="no-bullets m-0 grid list-none gap-2 p-0">
-        {entry.flags.map((flag) => (
-          <li
-            key={flag.flag}
-            className="bg-muted/60 flex flex-col gap-0.5 rounded-lg border border-border px-3.5 py-2.5 sm:flex-row sm:gap-3"
-          >
-            <code className="text-foreground shrink-0 font-mono text-[0.8rem] sm:w-56">
-              {flag.flag}
-            </code>
-            <span className="text-muted-foreground text-[0.86rem] leading-relaxed">
-              {flag.detail}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </TabsContent>
-  ))}
-</Tabs>
-
-</Step>
-
-<Step number={9} title="Why this is useful for Go developers">
-
-An API test in Go is rarely just the HTTP request. To make it mean anything you usually end
-up defining:
-
-- the request itself
-- headers
-- body
-- the expected response
-- the database state it assumes
-- the behavior of anything else it calls
-- mocks for all of the above
-
-That's a lot of scaffolding around a behavior that already exists and already works — and
-it's scaffolding you get to maintain again every time the response shape changes. I have
-never once enjoyed the mocking half.
-
-<Screenshot
-  {...screenshots.comparison}
-  alt="Comparison of the Keploy record-and-replay workflow against writing API tests and mocks by hand"
-  caption="Two workflows, and the difference is which one you have to maintain."
-/>
-
-Keploy captures the interaction while you use the application and keeps what's needed to
-replay it. So the work becomes: use the app → capture the interaction → reuse it as a test,
-instead of: write everything by hand → build mocks by hand → maintain all of it by hand.
-
-Being honest about the limits, because this isn't magic: it won't design your edge cases,
-and it won't tell you what *should* happen — only what did happen. If your handler has a
-bug, Keploy will faithfully record the bug and then faithfully defend it. What it's
-genuinely good at is turning realistic API interactions into reproducible regression tests,
-cheaply, for exactly the endpoints that are tedious to test by hand.
-
-</Step>
-
-<Step number={10} title="What I learned">
-
-These notes come from actually running it, not from reading the docs back to you.
-
-{observations.map((item) => (
-  <div key={item.title} className="mt-8 first:mt-0">
-    <Heading level={3}>{item.title}</Heading>
-    <p className="m-0 mt-3">
-      <RichText text={item.body} />
-    </p>
-  </div>
-))}
-
-<p className="text-faint m-0 mt-12 text-[0.72rem] font-semibold tracking-[0.09em] uppercase">Where it clicked</p>
-
-{ahaMoments.map((item) => (
-  <div key={item.title} className="mt-6 first:mt-0">
-    <Heading level={3}>{item.title}</Heading>
-    <p className="m-0 mt-3">
-      <RichText text={item.body} />
-    </p>
-  </div>
-))}
-
-</Step>
-
-<Step number={11} title="Troubleshooting">
-
-The two failure modes worth knowing before you start, rather than after you've spent twenty
-minutes on them.
-
-<Accordion
-  type="single"
-  defaultValue="0"
-  collapsible
-  className="mt-5 rounded-xl border border-border px-4"
->
-  {troubleshooting.map((item, index) => (
-    <AccordionItem key={item.symptom} value={String(index)} className="border-border">
-      <AccordionTrigger className="hover:no-underline text-[0.95rem]">
-        {item.symptom}
-      </AccordionTrigger>
-      <AccordionContent>
-        <p className="text-muted-foreground m-0">
-          <RichText text={item.cause} />
-        </p>
-        <p className="m-0 mt-2">
-          <RichText text={item.fix} />
-        </p>
-        {item.command ? <CommandBlock className="mt-4">{item.command}</CommandBlock> : null}
-      </AccordionContent>
-    </AccordionItem>
-  ))}
-</Accordion>
-
-<Callout type="warning" title="Don't edit recorded expectations just to make a test pass">
-
-A failing replay is information, and it's tempting to delete the information. Something
-about the app's behavior changed since the recording — sometimes that's a bug you wanted
-caught, sometimes it's an intentional change that means the test case should be
-re-recorded. Work out which one it is *before* touching the test data. Otherwise the suite
-stays green and quietly stops meaning anything, which is worse than not having it.
-
-</Callout>
-
-</Step>
-
-<Step number={12} title="Final result">
-
-From the run this article documents, Keploy reported:
-
-<TerminalBlock language="text" title="testrun summary">{result.summary}</TerminalBlock>
-
-<Card className="gap-0 py-0">
-  <CardHeader className="border-b px-5 py-4">
-    <CardTitle className="flex flex-wrap items-center gap-2.5 text-base">
-      Replay result
-      <Badge variant="brand" className="gap-1.5 rounded-md px-2 py-0.5">
-        <CircleCheckBig className="size-3.5" aria-hidden="true" />
-        {result.passed.length} / {result.passed.length} passed
-      </Badge>
-    </CardTitle>
-    <CardDescription className="font-mono text-[0.8rem]">
-      phase: {result.phase}
-    </CardDescription>
-  </CardHeader>
-  <CardContent className="px-5 py-4">
-    <ul role="list" className="no-bullets m-0 grid list-none gap-2 p-0 sm:grid-cols-2">
-      {result.passed.map((test) => (
-        <li
-          key={test.name}
-          className="bg-muted/60 flex items-start gap-2.5 rounded-lg border border-border px-3.5 py-3"
-        >
-          <CircleCheckBig className="text-success mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          <span className="min-w-0">
-            <span className="text-foreground block font-mono text-[0.85rem] font-medium">
-              {test.name}
-            </span>
-            <span className="text-muted-foreground block text-[0.82rem] leading-relaxed">
-              {test.detail}
-            </span>
-          </span>
-        </li>
-      ))}
-    </ul>
-  </CardContent>
-</Card>
-
-{result.fullOutput ? (
-  <TerminalBlock language="text" title="full output">
-    {result.fullOutput}
-  </TerminalBlock>
-) : null}
-
-### End to end
-
-<TerminalBlock language="text" title="workflow">{artifacts.summary}</TerminalBlock>
-
-<Separator className="my-8" />
-
-The commands are the easy part to copy. The transferable idea is the order:
-
-> Use the application first. Capture what happened. Replay it as a test.
-
-For an API-heavy Go service, that's a genuinely low-friction way to get regression coverage
-over the routes you already exercise — including the database behavior behind them, which
-is the part I'd normally skip and then regret.
-
-</Step>
