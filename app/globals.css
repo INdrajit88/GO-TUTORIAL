@@ -1,0 +1,691 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Class-based theming driven by next-themes. `attribute="class"` on the
+   provider toggles `.dark` on <html>, so this variant is what makes every
+   `dark:` utility in the project resolve. */
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------ *
+ * Tokens
+ *
+ * The first block uses shadcn/ui's canonical names so components under
+ * `components/ui/` work unmodified. The "domain" tokens below them are
+ * this project's own: brand color, the third text tier, and code chrome.
+ *
+ * `--brand` is deliberately NOT called `--accent`. shadcn reserves
+ * `accent` for the subtle hover surface, and colliding with it silently
+ * breaks every shadcn component.
+ *
+ * Contrast (WCAG AA, 4.5:1 minimum for body text) was measured for every
+ * foreground/background pair below — see the notes on --faint.
+ * ------------------------------------------------------------------ */
+
+:root {
+  color-scheme: light;
+
+  --radius: 0.625rem;
+
+  /* Surfaces are Keploy's own docs values: page #f9fafb, white content cards,
+     and navy body text rather than black. */
+  --background: #f9fafb;
+  --foreground: #00163d;
+
+  --card: #ffffff;
+  --card-foreground: #00163d;
+
+  --popover: #ffffff;
+  --popover-foreground: #00163d;
+
+  /* Keploy's own primary ramp (#e67643 / #c95919 / #be2c1b) is used for
+     destructive and hover, but NOT for --primary or --brand-fg: #c95919 on
+     white measures 4.26:1 and #e67643 measures 2.98:1, both under AA.
+     #c2410c is the darkest orange in their set that clears it (5.18:1). */
+  --primary: #c2410c;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f3f4f6;
+  --secondary-foreground: #00163d;
+
+  --muted: #f3f4f6;
+  --muted-foreground: #4b5563;
+
+  --accent: #f5f5f4;
+  --accent-foreground: #00163d;
+
+  --destructive: #be2c1b;
+  --destructive-foreground: #ffffff;
+
+  --border: #e5e7eb;
+  --input: #d1d5db;
+  --ring: #ea580c;
+
+  /* Keploy brand orange #ff914d, triple-confirmed across their logo wordmark,
+     docs --ifm-color-primary, and marketing --theme-primary. Used for fills,
+     rules and decoration. Text uses --brand-fg instead, because #ff914d on
+     white is 2.1:1. */
+  --brand: #ff914d;
+  --brand-hover: #e67643;
+  --brand-soft: #fff7ed;
+  --brand-fg: #c2410c;
+
+  /* Inline code: Keploy's docs pair #fff7ed with #c2410c (4.88:1). */
+  --code-inline-bg: #fff7ed;
+  --code-inline-fg: #c2410c;
+  --code-inline-border: #fed7aa;
+
+  /* 4.63:1 on --background and 4.83:1 on --card. */
+  --faint: #6b7280;
+  --line-strong: #d1d5db;
+
+  /* Semantic callout colors consumed by the Alert variants in
+     components/ui/alert.tsx. Each has three parts: the icon/rule color, the
+     tinted surface, and the title text (tuned for >= 4.5:1 on that surface).
+     Warning is pushed toward yellow so it stays distinguishable from the
+     orange brand at a glance. */
+  --info: #2563eb;
+  --info-soft: #eff5ff;
+  --info-fg: #1e40af;
+
+  --tip: #6d28d9;
+  --tip-soft: #f4f1ff;
+  --tip-fg: #5b21b6;
+
+  --warning: #a16207;
+  --warning-soft: #fefce8;
+  --warning-fg: #854d0e;
+
+  --success: #046c4e;
+  --success-soft: #e9f9f1;
+  --success-fg: #035a41;
+
+  /* Navbar wordmark lockup. These do NOT get dark-mode variants, because the
+     wordmark sits on a navy chip in both themes — that chip is the reason the
+     brand colors are usable at all. On navy #00163d they measure 12.83:1
+     (yellow) and 6.74:1 (cyan). Placed directly on the light header they are
+     1.33:1 and 2.52:1, i.e. the yellow would be effectively invisible. */
+  --nav-chip: #00163d;
+  --nav-keploy: #fad961;
+  --nav-go: #00add8;
+
+  --header-h: 4rem;
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* Keploy's docs dark surfaces: #141414 page, #18181b content, #f5f6f7 text.
+     (Their marketing site uses a navy #0e1015; the docs values suit a
+     documentation page better and every pairing below was measured.) */
+  --background: #141414;
+  --foreground: #f5f6f7;
+
+  --card: #18181b;
+  --card-foreground: #f5f6f7;
+
+  --popover: #1c1c1f;
+  --popover-foreground: #f5f6f7;
+
+  --primary: #ff914d;
+  --primary-foreground: #141414;
+
+  --secondary: #1f1f23;
+  --secondary-foreground: #f5f6f7;
+
+  --muted: #1f1f23;
+  --muted-foreground: #a1a1aa;
+
+  --accent: #26262b;
+  --accent-foreground: #f5f6f7;
+
+  --destructive: #f27272;
+  --destructive-foreground: #2a0d0d;
+
+  --border: #27272a;
+  --input: #333338;
+  --ring: #ff914d;
+
+  /* Keploy's brand orange reads at 8.25:1 here, so unlike light mode it can be
+     used for text as well as fills. Their docs force links white in dark mode;
+     that is an aesthetic hotfix, not a contrast requirement, so the brand color
+     is kept to preserve the identity. */
+  --brand: #ff914d;
+  --brand-hover: #ffab77;
+  --brand-soft: rgba(255, 145, 77, 0.13);
+  --brand-fg: #ff914d;
+
+  /* Keploy's docs dark inline code: rgba(251,146,60,.2) with #fb923c (5.46:1). */
+  --code-inline-bg: rgba(251, 146, 60, 0.2);
+  --code-inline-fg: #fb923c;
+  --code-inline-border: rgba(251, 146, 60, 0.32);
+
+  --faint: #8b8b93;
+  --line-strong: #3f3f46;
+
+  /* Translucent surfaces so the tint reads correctly over both --background
+     and --card without needing a second set of opaque values. */
+  --info: #7aabff;
+  --info-soft: rgba(122, 171, 255, 0.12);
+  --info-fg: #a9c8ff;
+
+  --tip: #bda7fb;
+  --tip-soft: rgba(189, 167, 251, 0.12);
+  --tip-fg: #cdbefc;
+
+  --warning: #facc15;
+  --warning-soft: rgba(250, 204, 21, 0.12);
+  --warning-fg: #fde047;
+
+  --success: #52d6a4;
+  --success-soft: rgba(82, 214, 164, 0.12);
+  --success-fg: #86e3c0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-fg: var(--brand-fg);
+  --color-faint: var(--faint);
+  --color-line-strong: var(--line-strong);
+
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-info-fg: var(--info-fg);
+  --color-tip: var(--tip);
+  --color-tip-soft: var(--tip-soft);
+  --color-tip-fg: var(--tip-fg);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-fg: var(--warning-fg);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-fg: var(--success-fg);
+
+  --color-nav-chip: var(--nav-chip);
+  --color-nav-keploy: var(--nav-keploy);
+  --color-nav-go: var(--nav-go);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --animate-accordion-down: accordion-down 200ms ease-out;
+  --animate-accordion-up: accordion-up 200ms ease-out;
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Base
+ * ------------------------------------------------------------------ */
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 26%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Shared page container — header, hero, content and footer all use this
+ * so their left edges line up at every breakpoint.
+ * ------------------------------------------------------------------ */
+
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: 68rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container-page {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container-page {
+      padding-inline: 2rem;
+    }
+  }
+
+  /* ---------------------------------------------------------------- *
+   * Prose — everything MDX emits that isn't a custom component.
+   * ---------------------------------------------------------------- */
+
+  .prose {
+    color: var(--foreground);
+    font-size: 1.0625rem;
+    line-height: 1.75;
+  }
+
+  .prose > * + * {
+    margin-top: 1.125rem;
+  }
+
+  .prose p {
+    letter-spacing: -0.006em;
+    text-wrap: pretty;
+  }
+
+  /* `.lead` is a div wrapper, not a <p>. MDX parses markdown inside block-level
+     JSX tags, so `<p className="lead">` emits <p><p> — invalid nesting that
+     breaks hydration. The wrapper sizes and colors the <p> MDX creates. */
+  .prose .lead {
+    font-size: 1.16rem;
+    line-height: 1.65;
+    color: var(--muted-foreground);
+  }
+
+  .prose strong {
+    font-weight: 650;
+    color: var(--foreground);
+  }
+
+  .prose a {
+    color: var(--brand-fg);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(in oklab, var(--brand) 38%, transparent);
+    transition:
+      text-decoration-color 120ms ease,
+      color 120ms ease;
+  }
+
+  .prose a:hover {
+    color: var(--brand-hover);
+    text-decoration-color: currentColor;
+  }
+
+  .prose ul,
+  .prose ol {
+    padding-left: 1.375rem;
+  }
+
+  .prose ul {
+    list-style: none;
+  }
+
+  .prose ul > li {
+    position: relative;
+  }
+
+  .prose ul > li::before {
+    content: "";
+    position: absolute;
+    left: -1.05rem;
+    top: 0.72em;
+    width: 0.34rem;
+    height: 0.34rem;
+    border-radius: 999px;
+    background: var(--line-strong);
+  }
+
+  .prose ol {
+    list-style: decimal;
+  }
+
+  .prose ol > li::marker {
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.9em;
+  }
+
+  .prose li + li {
+    margin-top: 0.4rem;
+  }
+
+  .prose li > ul,
+  .prose li > ol {
+    margin-top: 0.4rem;
+  }
+
+  /* Opt out of the prose list chrome for card grids and result lists rendered
+     from tutorialData, where bullets and indentation are just noise. */
+  .prose ul.no-bullets {
+    padding-left: 0;
+  }
+
+  .prose ul.no-bullets > li::before {
+    content: none;
+  }
+
+  .prose ul.no-bullets > li + li {
+    margin-top: 0;
+  }
+
+  /* Inline code uses Keploy's own docs pairing (#fff7ed / #c2410c in light,
+     rgba(251,146,60,.2) / #fb923c in dark) so commands read as brand-colored
+     chips against the prose. */
+  .prose :not(pre) > code {
+    font-family: var(--font-mono);
+    font-size: 0.855em;
+    font-weight: 500;
+    padding: 0.14em 0.38em;
+    border-radius: 0.3rem;
+    background: var(--code-inline-bg);
+    border: 1px solid var(--code-inline-border);
+    color: var(--code-inline-fg);
+    white-space: nowrap;
+  }
+
+  .prose blockquote {
+    border-left: 2px solid var(--brand);
+    padding: 0.1rem 0 0.1rem 1.1rem;
+    color: var(--muted-foreground);
+  }
+
+  .prose hr {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin: 2.5rem 0;
+  }
+
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.925rem;
+    display: block;
+    overflow-x: auto;
+  }
+
+  .prose th,
+  .prose td {
+    text-align: left;
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .prose th {
+    font-weight: 600;
+    color: var(--muted-foreground);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.045em;
+    background: var(--muted);
+  }
+
+  /* Vertical rhythm. Utilities still win over these, so an explicit class on
+     an element inside prose overrides the rhythm rather than fighting it. */
+  .prose :is(h1, h2, h3, h4) {
+    scroll-margin-top: calc(var(--header-h) + 1.25rem);
+    text-wrap: balance;
+  }
+
+  .prose h2 {
+    margin: 3rem 0 0;
+  }
+
+  .prose h3 {
+    margin: 2rem 0 0;
+  }
+
+  .prose h4 {
+    margin: 1.5rem 0 0;
+  }
+
+  .prose :is(h1, h2, h3, h4) + * {
+    margin-top: 0.85rem;
+  }
+
+  .prose > figure {
+    margin: 2rem 0;
+  }
+
+  /* ---------------------------------------------------------------- *
+   * Code panels
+   * ---------------------------------------------------------------- */
+
+  .code-scroll {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+
+  .code-scroll::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .code-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .code-scroll::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 999px;
+  }
+
+  .code-scroll pre {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.855rem;
+    line-height: 1.7;
+  }
+
+  .code-scroll pre code {
+    display: block;
+    width: fit-content;
+    min-width: 100%;
+    font-family: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    white-space: pre;
+  }
+
+  .code-scroll .line {
+    display: block;
+    padding: 0 1.15rem;
+  }
+
+  /* shiki dual themes: it emits --shiki-light/-dark on every span and
+     --shiki-light-bg/-dark-bg on the <pre>, so the panel follows the
+     active theme with no JavaScript and no flash on toggle. */
+  .shiki,
+  .shiki span {
+    color: var(--shiki-light);
+    background-color: var(--shiki-light-bg);
+  }
+
+  .dark .shiki,
+  .dark .shiki span {
+    color: var(--shiki-dark);
+    background-color: var(--shiki-dark-bg);
+  }
+
+  /* Prompt gutter for command panels. shiki tags exactly the lines that begin a
+     command (see commandLines() in TerminalBlock.tsx). The glyph is injected by
+     CSS so it never reaches the copied text, and its 2ch advance matches the
+     2-space indent the sample's `\` continuations use, so wrapped flags stay
+     aligned under the command. */
+  .code-scroll .line.with-prompt::before {
+    content: "$";
+    display: inline-block;
+    width: 1ch;
+    margin-right: 1ch;
+    color: var(--faint);
+    user-select: none;
+  }
+
+  /* ---------------------------------------------------------------- *
+   * Callout body. The tinted surface, border and title color now come
+   * from the Alert variants in components/ui/alert.tsx, so only the
+   * inner rhythm and the inline-code chip are handled here.
+   * ---------------------------------------------------------------- */
+
+  .callout-body {
+    margin-top: 0.15rem;
+  }
+
+  .callout-body p {
+    margin: 0;
+  }
+
+  .callout-body > * + * {
+    margin-top: 0.6rem;
+  }
+
+  /* Soften the orange chip inside an already-tinted callout so the two don't
+     compete. */
+  .callout-body :not(pre) > code {
+    background: color-mix(in oklab, var(--code-inline-bg) 65%, var(--background));
+    border-color: color-mix(in oklab, var(--code-inline-border) 55%, var(--border));
+  }
+
+  /* ---------------------------------------------------------------- *
+   * Workflow diagram nodes
+   * ---------------------------------------------------------------- */
+
+  .node-plain {
+    --node: var(--muted-foreground);
+    border-color: var(--border);
+    background: var(--card);
+  }
+
+  .node-brand {
+    --node: var(--brand);
+    border-color: color-mix(in oklab, var(--brand) 36%, var(--border));
+    background: color-mix(in oklab, var(--brand) 7%, var(--card));
+  }
+
+  .node-final {
+    --node: #046c4e;
+    border-color: color-mix(in oklab, var(--node) 38%, var(--border));
+    background: color-mix(in oklab, var(--node) 7%, var(--card));
+  }
+
+  .dark .node-final {
+    --node: #52d6a4;
+  }
+
+  /* ---------------------------------------------------------------- *
+   * Table of contents
+   * ---------------------------------------------------------------- */
+
+  .toc-link {
+    display: block;
+    border-left: 2px solid transparent;
+    padding: 0.28rem 0 0.28rem 0.85rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--muted-foreground);
+    transition:
+      color 120ms ease,
+      border-color 120ms ease,
+      background-color 120ms ease;
+  }
+
+  .toc-link:hover {
+    color: var(--foreground);
+    background: color-mix(in oklab, var(--muted) 60%, transparent);
+  }
+
+  .toc-link[data-active="true"] {
+    color: var(--brand-fg);
+    border-left-color: var(--brand);
+    font-weight: 550;
+  }
+
+  /* ---------------------------------------------------------------- *
+   * Collapsible table of contents (small screens)
+   * ---------------------------------------------------------------- */
+
+  details > summary {
+    list-style: none;
+  }
+
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details > summary::marker {
+    content: "";
+  }
+
+  .toc-chevron {
+    transition: transform 150ms ease;
+  }
+
+  details[open] .toc-chevron {
+    transform: rotate(90deg);
+  }
+}
