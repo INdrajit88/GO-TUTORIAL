@@ -408,7 +408,6 @@ export const tutorialSections = [
   "Check the Generated Testcases",
   "Replay the Testcases",
   "Run the Application Locally on Linux/WSL",
-  "What I Learned from This Setup",
   "Conclusion",
 ] as const;
 

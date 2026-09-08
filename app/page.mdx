@@ -2,7 +2,6 @@ import { Callout } from "@/components/Callout";
 import { Screenshot } from "@/components/Screenshot";
 import { NetworkArchitecture } from "@/components/NetworkArchitecture";
 import { TestMockComparison } from "@/components/TestMockComparison";
-import { WorkflowDiagram } from "@/components/WorkflowDiagram";
 
 <div className="prose">
 
@@ -26,7 +25,6 @@ Before getting started, make sure you have:
 * **Go** installed.
 * **Docker** installed and running.
 * **Keploy** installed.
-* `curl` or another API client such as Postman.
 
 If Keploy is not installed yet, follow the [Keploy installation guide](https://keploy.io/docs/server/installation/).
 
@@ -274,50 +272,6 @@ sudo -E PATH=$PATH keploy test -c "./echo-psql-url-shortener"
 ```
 
 Keploy replays the recorded requests and uses the captured database interactions, so you don't need to manually recreate the PostgreSQL state for every test.
-
----
-
-## What I Learned from This Setup
-
-The main thing to keep in mind is where your application is running.
-
-When the application runs inside Docker, PostgreSQL is reached using the Compose service name:
-
-```text
-postgres
-```
-
-When the application runs directly on Linux/WSL, PostgreSQL is reached through:
-
-```text
-localhost
-```
-
-Once that configuration is correct, the Keploy workflow is straightforward:
-
-```text
-Run the application
-       ↓
-Start Keploy recording
-       ↓
-Send API requests
-       ↓
-Capture API + database interactions
-       ↓
-Generate testcases and mocks
-       ↓
-Replay the testcases
-```
-
-<WorkflowDiagram />
-
-<Screenshot
-  src="/screenshots/08-keploy-flow.webp"
-  alt="Keploy record and replay workflow diagram"
-  caption="The Keploy workflow loop: capture live application interactions and replay them as automated tests."
-/>
-
-The useful part is that Keploy can capture the database interactions as part of the request flow, so you don't have to hand-write mocks for PostgreSQL.
 
 ---
 
