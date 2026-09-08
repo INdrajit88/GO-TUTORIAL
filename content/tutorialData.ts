@@ -343,25 +343,6 @@ export const ahaMoments = [
   },
 ] as const;
 
-/**
- * What actually went wrong, and the fix.
- *
- * The first entry is backed by your own `line 48 fix.png` screenshot and the
- * hostname guidance in the source material. The second is documented as a sharp
- * edge rather than something that definitely bit you — adjust if it didn't.
- */
-export const confusingSteps = [
-  {
-    title: "localhost works on my laptop, so why not in the container?",
-    body: `Line 48 of \`main.go\` had the PostgreSQL host, and \`localhost\` is correct right up until it isn't. Inside the Compose network \`localhost\` means "this container", where nothing is listening on 5432. Changing it to the service name — \`postgres\` — is one word, and until you know the rule it looks like a config file that's simply wrong for no reason.`,
-    fix: `Set the host to the Compose service name. \`postgres\`, not \`localhost\`, not \`127.0.0.1\`, not your machine's LAN IP.`,
-  },
-  {
-    title: "The delays are not decoration",
-    body: `\`--build-delay 50\` and \`--delay 10\` look like cargo-culted numbers you copy without reading. They aren't. One is "let the images build and Postgres start accepting connections before you watch", the other is "let the app be ready before you fire requests at it". On a cold Docker cache both matter, and the symptom of getting them wrong is a confusing failure rather than a clear one.`,
-    fix: `Start from the values in the tutorial. If a replay starts before the app is ready, raise \`--delay\` before you suspect anything else.`,
-  },
-] as const;
 
 export type TroubleshootingEntry = {
   symptom: string;
@@ -458,7 +439,6 @@ export const tutorialData = {
   screenshots,
   observations,
   ahaMoments,
-  confusingSteps,
   troubleshooting,
   result,
   contents,

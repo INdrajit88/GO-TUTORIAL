@@ -210,15 +210,13 @@ Two build constraints are already handled — don't undo them:
 
 ### Author notes
 
-`content/tutorialData.ts` holds the first-person material for step 10, in three arrays:
+`content/tutorialData.ts` holds the first-person material for step 10, in two arrays:
 
 - `observations` — three notes carried over from the original hands-on write-up
 - `ahaMoments` — two "it clicked here" moments
-- `confusingSteps` — two things that went wrong, each with a `fix` field
 
-**Read `ahaMoments` and `confusingSteps` before publishing.** They were drafted from the
-source material and from what the screenshots show — the `line 48 fix.png` capture is
-evidence the Postgres hostname step genuinely went wrong — but they are not transcribed
+**Read `ahaMoments` before publishing.** They were drafted from the
+source material and from what the screenshots show, but they are not transcribed
 from a recorded session. The comment above each array in the data file says the same thing.
 Adjust any wording that isn't how it actually went.
 

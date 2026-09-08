@@ -2,7 +2,6 @@ import {
   ahaMoments,
   artifacts,
   commands,
-  confusingSteps,
   endpoints,
   flagReference,
   observations,
@@ -458,20 +457,6 @@ These notes come from actually running it, not from reading the docs back to you
     <Heading level={3}>{item.title}</Heading>
     <p className="m-0 mt-3">
       <RichText text={item.body} />
-    </p>
-  </div>
-))}
-
-<p className="text-faint m-0 mt-12 text-[0.72rem] font-semibold tracking-[0.09em] uppercase">What tripped me up</p>
-
-{confusingSteps.map((item) => (
-  <div key={item.title} className="mt-6 first:mt-0">
-    <Heading level={3}>{item.title}</Heading>
-    <p className="m-0 mt-3">
-      <RichText text={item.body} />
-    </p>
-    <p className="text-muted-foreground m-0 mt-2 text-[0.95rem]">
-      <strong className="text-foreground">The fix:</strong> <RichText text={item.fix} />
     </p>
   </div>
 ))}
