@@ -55,19 +55,25 @@ export function TableOfContents({
 
   const links = (
     <ul role="list" className="m-0 list-none p-0">
-      {items.map((item) => (
-        <li key={item.id}>
-          <a
-            href={`#${item.id}`}
-            className="toc-link"
-            data-active={variant === "sidebar" && active === item.id}
-            aria-current={variant === "sidebar" && active === item.id ? "location" : undefined}
-            onClick={() => details.current?.removeAttribute("open")}
+      {items.map((item) => {
+        const isSub = item.level === 3;
+        return (
+          <li
+            key={item.id}
+            className={!isSub ? "mt-2.5 first:mt-0 font-medium" : "my-0.5"}
           >
-            {item.label}
-          </a>
-        </li>
-      ))}
+            <a
+              href={`#${item.id}`}
+              className={isSub ? "toc-sublink" : "toc-link"}
+              data-active={variant === "sidebar" && active === item.id}
+              aria-current={variant === "sidebar" && active === item.id ? "location" : undefined}
+              onClick={() => details.current?.removeAttribute("open")}
+            >
+              {item.label}
+            </a>
+          </li>
+        );
+      })}
     </ul>
   );
 

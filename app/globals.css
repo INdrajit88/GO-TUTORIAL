@@ -681,6 +681,32 @@
     font-weight: 550;
   }
 
+  .toc-sublink {
+    display: block;
+    border-left: 2px solid color-mix(in oklab, var(--border) 60%, transparent);
+    margin-left: 0.65rem;
+    padding: 0.2rem 0 0.2rem 0.8rem;
+    font-size: 0.77rem;
+    line-height: 1.4;
+    color: var(--muted-foreground);
+    transition:
+      color 120ms ease,
+      border-color 120ms ease,
+      background-color 120ms ease;
+  }
+
+  .toc-sublink:hover {
+    color: var(--foreground);
+    border-left-color: var(--line-strong);
+    background: color-mix(in oklab, var(--muted) 40%, transparent);
+  }
+
+  .toc-sublink[data-active="true"] {
+    color: var(--brand-fg);
+    border-left-color: var(--brand);
+    font-weight: 550;
+  }
+
   /* ---------------------------------------------------------------- *
    * Collapsible table of contents (small screens)
    * ---------------------------------------------------------------- */

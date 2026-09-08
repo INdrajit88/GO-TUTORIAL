@@ -402,21 +402,37 @@ Total test failed:  0`,
 export const tutorialSections = [
   "Prerequisites",
   "Get the Sample Application",
-  "Run Everything with Docker Compose",
-  "Start Recording with Keploy",
-  "Generate a Testcase",
-  "Check the Generated Testcases",
-  "Replay the Testcases",
-  "Run the Application Locally on Linux/WSL",
+  "Process 1: Docker Compose Workflow",
+  "Process 2: Local Linux/WSL Workflow",
   "Conclusion",
 ] as const;
 
-export type ContentsEntry = { id: string; label: string };
+export type ContentsEntry = {
+  id: string;
+  label: string;
+  level?: 2 | 3;
+};
 
-export const contents: ContentsEntry[] = tutorialSections.map((title) => ({
-  id: slugify(title),
-  label: title,
-}));
+export const contents: ContentsEntry[] = [
+  { id: "prerequisites", label: "Prerequisites", level: 2 },
+  { id: "get-the-sample-application", label: "Get the Sample Application", level: 2 },
+  { id: "process-1-docker-compose-workflow", label: "Process 1: Docker Compose", level: 2 },
+  { id: "update-the-postgresql-host", label: "Update PostgreSQL Host", level: 3 },
+  { id: "start-recording-with-keploy", label: "Start Recording with Keploy", level: 3 },
+  { id: "generate-a-testcase", label: "Generate Testcases", level: 3 },
+  { id: "stop-recording", label: "Stop Recording", level: 3 },
+  { id: "check-the-generated-testcases", label: "Check Generated Testcases", level: 3 },
+  { id: "replay-the-testcases", label: "Replay Testcases", level: 3 },
+  { id: "process-2-local-linuxwsl-workflow", label: "Process 2: Local Linux/WSL", level: 2 },
+  { id: "start-postgresql", label: "Start PostgreSQL in Docker", level: 3 },
+  { id: "change-the-postgresql-host", label: "Change PostgreSQL Host", level: 3 },
+  { id: "build-the-application", label: "Build Application", level: 3 },
+  { id: "start-keploy-recording", label: "Start Keploy Recording", level: 3 },
+  { id: "generate-api-traffic", label: "Generate API Traffic", level: 3 },
+  { id: "stop-the-local-recording-session", label: "Stop Local Recording", level: 3 },
+  { id: "replay-the-local-testcases", label: "Replay Local Testcases", level: 3 },
+  { id: "conclusion", label: "Conclusion", level: 2 },
+];
 
 export const tutorialData = {
   site,

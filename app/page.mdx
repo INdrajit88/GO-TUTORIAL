@@ -44,9 +44,9 @@ The sample is a simple URL shortener built with Echo and backed by PostgreSQL.
 
 ---
 
-## Run Everything with Docker Compose
+## Process 1: Docker Compose Workflow
 
-For the first setup, both the application and PostgreSQL will run through Docker Compose.
+In this first workflow, both the application and PostgreSQL run containerized through Docker Compose, with Keploy recording network interactions between them.
 
 ### Update the PostgreSQL Host
 
@@ -76,7 +76,7 @@ The correct PostgreSQL host depends on where your application is running. Inside
 
 ---
 
-## Start Recording with Keploy
+### Start Recording with Keploy
 
 Start the application through Keploy:
 
@@ -90,7 +90,7 @@ You can skip it when your services are already running.
 
 ---
 
-## Generate a Testcase
+### Generate a Testcase
 
 With the application running, send a request to create a shortened URL:
 
@@ -114,7 +114,7 @@ You should get a response similar to:
 
 The timestamp changes between requests, so Keploy handles such dynamic values during testing.
 
-### Test the Redirect Endpoint
+#### Test the Redirect Endpoint
 
 Use the generated short URL:
 
@@ -153,7 +153,7 @@ docker compose down
 
 ---
 
-## Check the Generated Testcases
+### Check the Generated Testcases
 
 The captured testcases are written to the Keploy directory.
 
@@ -181,7 +181,7 @@ The exact files may vary depending on the recorded requests.
 
 ---
 
-## Replay the Testcases
+### Replay the Testcases
 
 Once the recording is complete, run the captured testcases:
 
@@ -201,11 +201,11 @@ This gives you a repeatable test flow without manually setting up database mocks
 
 ---
 
-## Run the Application Locally on Linux/WSL
+## Process 2: Local Linux/WSL Workflow
 
-You can also run the Go application directly on Linux/WSL while keeping PostgreSQL inside Docker.
+In this alternative workflow, the Go application runs directly on your local Linux or WSL machine while keeping PostgreSQL inside Docker.
 
-This setup is slightly different, especially when it comes to the PostgreSQL host.
+This setup requires adjusting the database host and running Keploy with appropriate permissions against the compiled binary.
 
 ### Start PostgreSQL
 
@@ -292,7 +292,7 @@ Once you have tested the endpoints, return to the terminal running `sudo -E PATH
 
 ---
 
-## Replay the Local Testcases
+### Replay the Local Testcases
 
 Run the captured testcases against the local binary:
 
