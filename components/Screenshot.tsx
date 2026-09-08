@@ -42,7 +42,7 @@ export function Screenshot({
 
   return (
     <figure className={cn("my-8", className)}>
-      <div className="bg-muted overflow-hidden rounded-xl border border-border">
+      <div className="overflow-hidden rounded-xl border border-border bg-[#0e0e0e] shadow-xs">
         {available ? (
           // eslint-disable-next-line @next/next/no-img-element -- see the note above; next/image can't tolerate absent files.
           <img
