@@ -539,6 +539,9 @@
     font-family: var(--font-mono);
     font-size: 0.855rem;
     line-height: 1.7;
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
   }
 
   .code-scroll pre code {
@@ -546,30 +549,43 @@
     width: fit-content;
     min-width: 100%;
     font-family: inherit;
-    background: none;
+    background: transparent !important;
+    background-color: transparent !important;
     border: 0;
     padding: 0;
     white-space: pre;
+    box-shadow: none !important;
   }
 
   .code-scroll .line {
     display: block;
     padding: 0 1.15rem;
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
   }
 
-  /* shiki dual themes: it emits --shiki-light/-dark on every span and
-     --shiki-light-bg/-dark-bg on the <pre>, so the panel follows the
-     active theme with no JavaScript and no flash on toggle. */
+  /* shiki dual themes: color tokens follow active theme, while background
+     remains completely transparent so code panels render flat without
+     inner shadow, contrast-boxes or strip effects. */
   .shiki,
+  .shiki pre,
+  .shiki code,
   .shiki span {
     color: var(--shiki-light);
-    background-color: var(--shiki-light-bg);
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
   }
 
   .dark .shiki,
+  .dark .shiki pre,
+  .dark .shiki code,
   .dark .shiki span {
     color: var(--shiki-dark);
-    background-color: var(--shiki-dark-bg);
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
   }
 
   /* Prompt gutter for command panels. shiki tags exactly the lines that begin a

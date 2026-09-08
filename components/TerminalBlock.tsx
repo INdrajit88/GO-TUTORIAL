@@ -129,7 +129,7 @@ export async function TerminalBlock({
 
   return (
     <figure className={cn("my-6", className)}>
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/70 px-2 py-1.5 sm:px-3">
           <span className="flex min-w-0 items-center gap-2">
             {isCommand ? (
