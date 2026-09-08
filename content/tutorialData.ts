@@ -418,6 +418,7 @@ export const contents: ContentsEntry[] = [
   { id: "get-the-sample-application", label: "Get the Sample Application", level: 2 },
   { id: "process-1-docker-compose-workflow", label: "Process 1: Docker Compose", level: 2 },
   { id: "update-the-postgresql-host", label: "Update PostgreSQL Host", level: 3 },
+  { id: "build-the-application-docker", label: "Build Application", level: 3 },
   { id: "start-recording-with-keploy", label: "Start Recording with Keploy", level: 3 },
   { id: "generate-a-testcase", label: "Generate Testcases", level: 3 },
   { id: "stop-recording", label: "Stop Recording", level: 3 },

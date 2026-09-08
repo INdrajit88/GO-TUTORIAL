@@ -92,6 +92,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     // `app/page.mdx` imports them explicitly anyway, which keeps prop types checked.
     Callout,
     CommandBlock,
+    Heading,
     Step,
     Screenshot,
     TerminalBlock,
