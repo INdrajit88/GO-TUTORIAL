@@ -414,6 +414,7 @@ export const tutorialSections = [
   "Get the Sample Application",
   "Process 1: Docker Compose Workflow",
   "Process 2: Local Linux/WSL Workflow",
+  "Keploy Test Replay Execution Workflow",
   "Conclusion",
 ] as const;
 
@@ -443,6 +444,7 @@ export const contents: ContentsEntry[] = [
   { id: "stop-the-local-recording-session", label: "Stop Recording", level: 3 },
   { id: "check-the-local-generated-testcases", label: "Check Generated Testcases", level: 3 },
   { id: "replay-the-local-testcases", label: "Replay Local Testcases", level: 3 },
+  { id: "keploy-test-replay-execution-workflow", label: "Replay Execution Workflow", level: 2 },
   { id: "conclusion", label: "Conclusion", level: 2 },
 ];
 

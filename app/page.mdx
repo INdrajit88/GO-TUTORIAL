@@ -208,11 +208,11 @@ This gives you a repeatable test flow without manually setting up database mocks
   caption="Keploy testrun passing 100% of recorded test suites against the containerized Echo application without manual database fixtures."
 />
 
-<Screenshot
-  src="/screenshots/08-keploy-flow.webp"
-  alt="Keploy test replay execution workflow diagram"
-  caption="How Keploy executes tests: replaying recorded requests, serving mocked database responses, and validating application behavior without live dependencies."
-/>
+<Callout type="tip" title="How Keploy executes tests under the hood">
+
+To understand how Keploy intercepts network packets, serves mocked PostgreSQL queries, and asserts contract parity without running a live database, jump to the dedicated [Keploy Test Replay Execution Workflow](#keploy-test-replay-execution-workflow) section.
+
+</Callout>
 
 ---
 
@@ -377,6 +377,77 @@ Keploy replays the recorded requests and uses the captured database interactions
   alt="Keploy replaying testcases with passing results"
   caption="Keploy test execution verifying recorded testcases across test sets with 100% pass rate."
 />
+
+<Callout type="tip" title="Under the hood of the replay engine">
+
+For an architectural walkthrough of how Keploy intercepts network calls and serves recorded mocks without database dependencies, explore the [Keploy Test Replay Execution Workflow](#keploy-test-replay-execution-workflow) section.
+
+</Callout>
+
+---
+
+## Keploy Test Replay Execution Workflow
+
+How Keploy executes tests: replaying recorded requests, serving mocked database responses, and validating application behavior without live dependencies.
+
+<Screenshot
+  src="/screenshots/08-keploy-flow.webp"
+  alt="Keploy test replay execution workflow diagram"
+  caption="How Keploy executes tests: replaying recorded requests, serving mocked database responses, and validating application behavior without live dependencies."
+/>
+
+When you run `keploy test`, Keploy doesn't just execute an arbitrary test script—it orchestrates an isolated, wire-level replay environment that simulates client traffic while transparently mocking backend dependencies.
+
+### Step-by-Step Replay Architecture
+
+The flowchart above illustrates each stage of Keploy's replay lifecycle:
+
+1. **Recorded Test Ingestion (`keploy/` directory)**  
+   Keploy loads the captured YAML test suites and mock files generated during `keploy record`. The test files (`tests/`) store the inbound HTTP request contracts (HTTP method, URI, headers, body) alongside expected responses. The mock files (`mocks/`) store the exact binary/wire-level exchanges between the application and external services (PostgreSQL queries, bind parameters, and result sets).
+
+2. **Application Startup in Test Mode**  
+   Keploy launches the target application—either via `docker compose up` or directly by running the compiled local binary. The application runs its normal production code:
+   - No mock frameworks or interfaces need to be injected into Go code.
+   - No conditional test flags or dummy endpoints are required.
+   - The application functions as if connecting to live infrastructure.
+
+3. **Ingress: Replaying Recorded API Requests**  
+   Keploy acts as an intelligent HTTP client, sequentially or concurrently firing recorded requests (such as `POST /url` to shorten a URL and `GET /:id` to follow the redirect) into the application port (`8082`).
+
+4. **Egress: Transparent Database Mocking**  
+   When the Go application executes queries against PostgreSQL (e.g. `INSERT INTO urls...` or `SELECT url FROM urls WHERE id = ...`), Keploy intercepts the outgoing TCP connection at the network/kernel layer. Instead of forwarding the query to a real PostgreSQL instance:
+   - Keploy matches the outgoing SQL query against its pre-recorded `mocks.yaml`.
+   - It instantly returns the recorded database response over the wire.
+   - **The test runs completely offline—no PostgreSQL container or live database instance needs to be running or pre-seeded.**
+
+5. **Actual Application Response Capture**  
+   The application processes the mocked database data through its standard business logic and generates an HTTP response. Keploy captures this response directly from the network socket.
+
+6. **Response Comparison & Dynamic Noise Filtering**  
+   Keploy evaluates the actual response against the recorded baseline:
+   - It verifies the HTTP status code (e.g., `200 OK` or `307 Temporary Redirect`).
+   - It validates headers and response JSON schemas.
+   - **Smart Noise Filtering:** Keploy automatically identifies dynamic fields (like the timestamp `"ts": 1645540022`, random tokens, or UUIDs) and ignores them during assertion so non-deterministic values don't trigger false positives.
+
+7. **Verification & Test Verdict (`PASS ✅`)**  
+   - **Success:** If the application behavior matches the recorded contract, the test passes with zero flaky failures.
+   - **Regression Detection:** If a recent code change altered the payload structure, dropped an expected field, or broke database query sequences, Keploy displays a clean terminal diff pinpointing the exact regression.
+
+### Replay Architecture Comparison
+
+| Feature | Traditional Integration Testing | Keploy Zero-Code Replay |
+| --- | --- | --- |
+| **External Dependencies** | Requires live PostgreSQL, Docker containers, seed scripts | 100% mocked at network layer; no live DB required |
+| **Mock Maintenance** | Developers write & maintain hundreds of mock interfaces | Recorded automatically from real network traffic |
+| **Test Flakiness** | High (caused by database state, leftover data, race conditions) | Zero (completely deterministic and idempotent) |
+| **Execution Speed** | Slow (waits for database network I/O and disk writes) | Fast (instant wire-level mock responses in memory) |
+| **CI/CD Complexity** | Heavy container orchestration & database provisioning | Lightweight single-binary test runner (`keploy test`) |
+
+<Callout type="tip" title="Hermetic testing in CI/CD pipelines">
+
+Because Keploy mocks all PostgreSQL queries at the network level, you can run your complete regression test suite inside lightweight CI/CD runners (like GitHub Actions) without setting up database service containers, managing migrations, or handling secret credentials.
+
+</Callout>
 
 ---
 
